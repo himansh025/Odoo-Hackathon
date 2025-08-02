@@ -12,6 +12,7 @@ const generateToken = (user) => {
   );
 };
 
+
 // 🔐 Register (only superadmin can create other users)
 exports.registerUser = async (req, res) => {
   try {
@@ -31,6 +32,7 @@ exports.registerUser = async (req, res) => {
       categoryInterest,
       preferredLanguage: lang
     });
+     await newUser.save();
 
     res.status(201).json({ message: 'User created successfully',newUser });
 

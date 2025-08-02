@@ -10,11 +10,15 @@ const {
   getAllRoleChangeRequests,
   updateImage,
   sendOtpForPasswordReset,
-  verifyOtpAndResetPassword
+  verifyOtpAndResetPassword,
+  loginUser,
+  registerUser
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 const {upload}= require("../middleware/multer")
 // Authenticated routes
+router.post('/register',  registerUser);
+router.post('/login', loginUser);
 router.post('/logout', protect, logoutUser);
 router.post('/request-role', protect, requestRoleChange);
 router.get('/profile', protect, getUserProfile);

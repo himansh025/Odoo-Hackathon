@@ -1,37 +1,62 @@
 
-const Ticket = require('../models//ticketModel');
+const Ticket = require('../models/ticketModel');
 const Comment = require('../models/commentModel');
 // const User = require('../models/userModel');
 const  sendStatusUpdateEmail= require('../utils/sendEmail');
-
+const {uploadOnCloudinary} = require("../utils/cloudinary")
 // POST /tickets
 exports.createTicket = async (req, res) => {
- try {
-    const { title, description, category } = req.body;
-    const userId = req.user._id;
+  try {
+    console.log("BODY:", req.body);
+    console.log("USER:", req.user);
+    console.log("FILE:", req.file);
 
-    let attachmentUrl = null;
+    const { subject, description, category } = req.body;
 
-    if (req.file) {
-      const result = await uploadOnCloudinary(req.file.path);
-      if (result?.url) {
-        attachmentUrl = result.url;
-      }
+    const createdBy = req.user?._id;
+
+    // Log fields being passed to the DB
+    console.log("Creating ticket with:");
+    console.log({ subject, description, category, createdBy });
+
+    if (!subject || !description || !category || !createdBy) {
+      return res.status(400).json({ error: 'Missing required fields.' });
     }
 
-    const ticket = await Ticket.create({
-      title,
+    let attachmentUrl = null;
+    if (req.file) {
+      const result = await uploadOnCloudinary(req.file.path);
+      if (result?.url) attachmentUrl = result.url;
+    }
+
+    await new Ticket({
+       subject,
       description,
       category,
-      user: userId,
+      createdBy,
+      attachment: attachmentUrl,
+    })
+    const newTicket = await Ticket.create({
+      subject,
+      description,
+      category,
+      createdBy,
       attachment: attachmentUrl,
     });
 
-    res.status(201).json({ message: "Ticket created", ticket });
+    return res.status(201).json({ message: "Ticket created", ticket: newTicket });
+
   } catch (err) {
-    res.status(500).json({ error: 'Failed to create ticket' });
+    console.error("❌ Ticket creation error:", err);
+    res.status(500).json({
+      error: "Failed to create ticket",
+      message: err.message,
+    });
   }
 };
+
+
+
 
 // GET /tickets (filtered for current user)
 exports.getTickets = async (req, res) => {
@@ -48,7 +73,7 @@ exports.getTickets = async (req, res) => {
       .populate('createdBy', 'name')
       .populate('category', 'name');
 
-    res.json(tickets);
+    res.json(tickets,"successfully ticket created  ");
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch tickets' });
   }

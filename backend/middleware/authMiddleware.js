@@ -3,17 +3,20 @@ const User = require('../models/userModel');
 
 exports.protect = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-
+console.log(authHeader)
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password');
-    next();
-  } catch (err) {
-    res.status(401).json({ message: 'Invalid token' });
-  }} else {
+console.log(token)
+try {
+  console.log("Verifying token...",process.env.JWT_SECRET);
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  console.log("Decoded JWT:", decoded);
+  req.user = await User.findById(decoded.id).select('-password');
+  next();
+} catch (err) {
+  console.error("JWT verification failed:", err); // Log full error
+  return res.status(401).json({ message: 'Invalid token' });
+}} else {
     return res.status(401).json({ message: 'Not authorized, token missing' });
   }
 };

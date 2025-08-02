@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
     default: 'user'
   },
   image:String,
+  
   categoryInterest: {
     type: [String], // array of interests, e.g., ['tech', 'finance']
     default: []
