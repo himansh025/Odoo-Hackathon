@@ -25,7 +25,7 @@ function Login() {
       dispatch(login({ user }));
 
       // Navigate to main page
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       console.error('Login failed:', error);
       alert(error.response?.data?.message || 'Login error');

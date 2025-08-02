@@ -9,6 +9,7 @@ const { protect } = require('../middleware/authMiddleware');
 
 // All routes protected (optional: add admin-only middleware if needed)
 router.post('/categories', protect, createCategory);
+router.get('/categoriesall',  getAllCategories);
 router.get('/categories', protect, getAllCategories);
 router.delete('/categories/:id', protect, deleteCategory);
 

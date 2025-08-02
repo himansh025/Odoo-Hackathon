@@ -9,27 +9,17 @@ function CreateTicket() {
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState([]);
   const [attachment, setAttachment] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const passedCategories = location.state?.categories || [];
 
-  // Get pre-selected category from navigation state
-  const preSelectedCategory = location.state?.preSelectedCategory || '';
-console.log("dsc",preSelectedCategory)
-  // Fetch categories on component mount
   useEffect(() => {
    
-        // Set pre-selected category if it exists and matches a category
-        if (preSelectedCategory) {
-          const matchingCategory = categoriesData.find(cat => 
-            cat.name === preSelectedCategory || cat._id === preSelectedCategory
-          );
-          if (matchingCategory) {
-            setCategory(matchingCategory._id);
-          }
+    setCategories(passedCategories);
     
-    };
-  }, [preSelectedCategory]);
+  
+  }, [ passedCategories]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,33 +32,24 @@ console.log("dsc",preSelectedCategory)
     formData.append('subject', subject);
     formData.append('description', description);
     formData.append('category', category);
-    if (attachment) formData.append('attachment', attachment);
+    // if (attachment) formData.append('attachment', attachment);
 
     try {
-      const res = await axiosInstance.post('/ticket/tickets', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      setLoading(true);
+      const res = await axiosInstance.post('/ticket/tickets', formData);
 
       if (res?.data?.ticket) {
-        navigate('/dashboard');
+        navigate('/');
       } else {
         alert('Ticket creation failed');
       }
     } catch (err) {
       console.error('Create ticket error:', err);
       alert(err?.response?.data?.error || 'Something went wrong');
+    } finally {
+      setLoading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
-        <div className="text-center text-gray-600">Loading categories...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
@@ -118,7 +99,7 @@ console.log("dsc",preSelectedCategory)
           </select>
         </div>
         
-        <div>
+        {/* <div>
           <label className="block text-gray-700 font-medium mb-2">Attachment (Optional)</label>
           <div className="flex items-center">
             <PaperClipIcon className="h-5 w-5 text-gray-600 mr-2" />
@@ -130,14 +111,15 @@ console.log("dsc",preSelectedCategory)
               accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
             />
           </div>
-        </div>
+        </div> */}
         
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
           <PlusCircleIcon className="h-5 w-5 mr-2" />
-          Create Ticket
+          {loading ? 'Creating...' : 'Create Ticket'}
         </button>
       </form>
     </div>

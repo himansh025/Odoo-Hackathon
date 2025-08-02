@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
 import { UserPlusIcon } from '@heroicons/react/24/outline'
 import axiosInstance from '../Config/apiconfig'
 
@@ -13,11 +12,10 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const response = await axiosInstance.post('/api/users/register', { name, email, password })
+      const response = await axiosInstance.post('/users/register', { name, email, password })
      if(response){
       console.log(response.data)
-      navigate('/tickets')
-
+      navigate('/login')
      }
     } catch (error) {
       console.error(error)

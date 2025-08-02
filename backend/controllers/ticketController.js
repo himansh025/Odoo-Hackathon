@@ -3,7 +3,7 @@ const Ticket = require('../models/ticketModel');
 const Comment = require('../models/commentModel');
 // const User = require('../models/userModel');
 const  sendStatusUpdateEmail= require('../utils/sendEmail');
-const {uploadOnCloudinary} = require("../utils/cloudinary")
+// const {uploadOnCloudinary} = require("../utils/cloudinary")
 // POST /tickets
 exports.createTicket = async (req, res) => {
   try {
@@ -23,11 +23,11 @@ exports.createTicket = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields.' });
     }
 
-    let attachmentUrl = null;
-    if (req.file) {
-      const result = await uploadOnCloudinary(req.file.path);
-      if (result?.url) attachmentUrl = result.url;
-    }
+    // let attachmentUrl = null;
+    // if (req.file) {
+    //   const result = await uploadOnCloudinary(req.file.path);
+    //   if (result?.url) attachmentUrl = result.url;
+    // }
 
 
     const newTicket = await Ticket.create({
@@ -35,7 +35,7 @@ exports.createTicket = async (req, res) => {
       description,
       category,
       createdBy,
-      attachment: attachmentUrl,
+      // attachment: attachmentUrl,
     });
 
     return res.status(201).json({ message: "Ticket created", ticket: newTicket });
@@ -67,6 +67,21 @@ exports.getTickets = async (req, res) => {
 
     const tickets = await Ticket.find(query)
       .sort(sort)
+      .populate('createdBy', 'name email')
+      .populate('category', 'name');
+
+    res.status(200).json(tickets);
+  } catch (err) {
+    console.error('Ticket fetch error:', err)
+    res.status(500).json({ error: 'Failed to fetch tickets' });
+  }
+};
+
+
+exports.getTicketsall = async (req, res) => {
+  try {
+   
+    const tickets = await Ticket.find({})
       .populate('createdBy', 'name email')
       .populate('category', 'name');
 
