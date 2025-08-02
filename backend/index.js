@@ -6,6 +6,9 @@ const connectDB = require('./config/db');
 
 // Route imports
 const userRoutes = require('./routes/userRoutes');
+const ticketRoutes = require('./routes/ticketRoutes ');
+const categoryRoutes = require('./routes/categoryRoute');
+const commetRoute = require('./routes/commentRoute');
 const oAuth = require('./routes/oAuth');
 const app = express();
 
@@ -17,7 +20,11 @@ app.use(express.json());
 connectDB()
 // API Routes
 app.use('/api/users',userRoutes );
+app.use('/api/ticket', ticketRoutes);
+app.use('/api/category',categoryRoutes );
+app.use('/api/comments', commetRoute);
 app.use('/api/oauth',oAuth );
+
 // Root route
 app.get('/', (req, res) => {
 res.send('🎓 College Venue Booking API is running');

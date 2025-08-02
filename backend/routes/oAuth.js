@@ -4,7 +4,7 @@ const router = express.Router();
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const User= require('../models/userModel')
-const { generateToken } = require("../controllers/userController");
+const { generateToken } = require("../controllers/userController");   
 
 
 router.post('/google' ,async (req, res) => {

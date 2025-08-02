@@ -18,8 +18,9 @@ const userSchema = new mongoose.Schema({
     type: String, // e.g., 'en', 'hi', 'es'
     default: 'en'
   },
-    resetPasswordToken: String,
-  resetPasswordExpires: Date
+  otp: String,
+otpExpiry: Date,
+
 });
 
 module.exports = mongoose.model('User', userSchema);

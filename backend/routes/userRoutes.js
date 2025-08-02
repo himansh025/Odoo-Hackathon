@@ -9,18 +9,18 @@ const {
   getUserById,
   getAllRoleChangeRequests,
   updateImage,
-  resetPassword,
-  forgotPassword
+  sendOtpForPasswordReset,
+  verifyOtpAndResetPassword
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
-
+const {upload}= require("../middleware/multer")
 // Authenticated routes
 router.post('/logout', protect, logoutUser);
 router.post('/request-role', protect, requestRoleChange);
 router.get('/profile', protect, getUserProfile);
-router.put('/profileImage', protect, updateImage);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password/:token', resetPassword);
+router.put('/profileImage', protect, upload.single("image"), updateImage);
+router.post('/forgot-password', sendOtpForPasswordReset);
+router.post('/reset-password', verifyOtpAndResetPassword);
 
 // Admin-only routes
 router.get('/admin/users', protect, getAllUsers);
