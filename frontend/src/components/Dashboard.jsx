@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { BellIcon, UserCircleIcon, MagnifyingGlassIcon, PlusCircleIcon, ChatBubbleLeftIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { BellIcon, UserCircleIcon, MagnifyingGlassIcon, PlusCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import axiosInstance from '../Config/apiconfig'
 
 function Dashboard() {
   const [tickets, setTickets] = useState([])
@@ -14,34 +14,48 @@ function Dashboard() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        const ticketsResponse = await axios.get('/api/tickets', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-          params: { status: statusFilter, category: categoryFilter, sort: sortBy, search: searchTerm }
-        })
-        console.log('Tickets Response:', ticketsResponse)
-        setTickets(ticketsResponse.data?.data || [])
-        const categoriesResponse = await axios.get('/api/categories', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        })
-        console.log('Categories Response:', categoriesResponse)
-        setCategories(categoriesResponse.data?.data || categoriesResponse.data || [])
-      } catch (error) {
-        console.error('Fetch Error:', error)
-        setCategories([])
-        setTickets([])
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [statusFilter, categoryFilter, sortBy, searchTerm])
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const ticketsResponse = await axiosInstance.get('/ticket/tickets', {
+        params: {
+          status: statusFilter || undefined,
+          category: categoryFilter || undefined,
+          sort: sortBy || undefined,
+          search: searchTerm || undefined
+        }
+      });
 
-  const handleAsk = () => {
-    navigate('/create-ticket')
+      console.log('Tickets Response:', ticketsResponse.data)
+      setTickets(ticketsResponse.data || [])
+
+      const categoriesResponse = await axiosInstance.get('/category/categories')
+      console.log('Categories Response:', categoriesResponse.data)
+      
+      // Make sure to use the correct variable name
+      if (categoriesResponse.data && categoriesResponse.data.success) {
+        setCategories(categoriesResponse.data.data || [])
+      } else {
+        setCategories(categoriesResponse.data || [])
+      }
+    } catch (error) {
+      console.error('Fetch Error:', error)
+      setCategories([])
+      setTickets([])
+    } finally {
+      setLoading(false)
+    }
   }
+  fetchData()
+}, [statusFilter, categoryFilter, sortBy, searchTerm])
+
+const handleAsk = (selectedCategory = '') => {
+  navigate('/create-ticket', { 
+    state: { 
+      preSelectedCategory: selectedCategory || categoryFilter 
+    } 
+  })
+}
 
   if (loading) {
     return <div className="text-center text-gray-600 p-6">Loading...</div>
@@ -59,6 +73,7 @@ function Dashboard() {
           <UserCircleIcon className="h-6 w-6 text-gray-600" />
         </div>
       </header>
+
       <div className="container mx-auto p-6">
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
           <div className="flex flex-wrap gap-4 mb-4">
@@ -68,10 +83,13 @@ function Dashboard() {
               className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Categories</option>
-              {Array.isArray(categories) ? categories.map(cat => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
-              )) : null}
+              {categories?.map(cat => (
+                <option key={cat._id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
             </select>
+
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -83,6 +101,7 @@ function Dashboard() {
               <option value="Resolved">Resolved</option>
               <option value="Closed">Closed</option>
             </select>
+
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -92,6 +111,7 @@ function Dashboard() {
               <option value="mostUpvote">Most upvote</option>
             </select>
           </div>
+
           <div className="flex items-center space-x-4">
             <div className="relative flex-1">
               <input
@@ -103,15 +123,16 @@ function Dashboard() {
               />
               <MagnifyingGlassIcon className="h-5 w-5 text-gray-600 absolute left-3 top-2" />
             </div>
-            <button
-              onClick={handleAsk}
-              className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 flex items-center"
-            >
-              <PlusCircleIcon className="h-5 w-5 mr-2" />
-              Ask
-            </button>
+          <button
+  onClick={() => handleAsk(categoryFilter)}
+  className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 flex items-center"
+>
+  <PlusCircleIcon className="h-5 w-5 mr-2" />
+  Ask
+</button>
           </div>
         </div>
+
         <div className="grid gap-4">
           {tickets.map(ticket => (
             <div key={ticket._id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
@@ -121,17 +142,19 @@ function Dashboard() {
                   <div className="flex space-x-2 text-sm text-gray-600">
                     <span className="flex items-center">
                       <CheckCircleIcon className="h-4 w-4 mr-1" />
-                      {ticket.category.name}
+                      {ticket.category}
                     </span>
                     <span className="flex items-center">
                       <CheckCircleIcon className="h-4 w-4 mr-1" />
                       {ticket.status}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500">Posted by {ticket.createdBy.name}</p>
+                  <p className="text-sm text-gray-500">Posted by {ticket.createdBy?.name}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Number of conv: {ticket.comments.length}</p>
+                  <p className="text-sm text-gray-600">
+                    Comments: {ticket.comments?.length || 0}
+                  </p>
                 </div>
               </div>
             </div>

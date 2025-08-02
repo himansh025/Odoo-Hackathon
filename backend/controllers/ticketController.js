@@ -29,13 +29,7 @@ exports.createTicket = async (req, res) => {
       if (result?.url) attachmentUrl = result.url;
     }
 
-    await new Ticket({
-       subject,
-      description,
-      category,
-      createdBy,
-      attachment: attachmentUrl,
-    })
+
     const newTicket = await Ticket.create({
       subject,
       description,
@@ -59,22 +53,26 @@ exports.createTicket = async (req, res) => {
 
 
 // GET /tickets (filtered for current user)
+// controllers/ticketController.js
 exports.getTickets = async (req, res) => {
   try {
-    console.log(req.user)
     const query = {
       ...(req.user.role === 'user' ? { createdBy: req.user._id } : {}),
-      ...(req.query.status && { status: req.query.status }),
-      ...(req.query.category && { category: req.query.category })
+      ...(req.query.status ? { status: req.query.status } : {}),
+      ...(req.query.category ? { category: req.query.category } : {})
     };
 
+    const sort =
+      req.query.sort === 'recent' ? { updatedAt: -1 } : req.query.sort === 'replies' ? { replyCount: -1 } : {};
+
     const tickets = await Ticket.find(query)
-      .sort(req.query.sortBy === 'recent' ? { updatedAt: -1 } : { replyCount: -1 })
-      .populate('createdBy', 'name')
+      .sort(sort)
+      .populate('createdBy', 'name email')
       .populate('category', 'name');
 
-    res.json(tickets,"successfully ticket created  ");
+    res.status(200).json(tickets);
   } catch (err) {
+    console.error('Ticket fetch error:', err)
     res.status(500).json({ error: 'Failed to fetch tickets' });
   }
 };

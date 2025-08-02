@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
-import { FunnelIcon, TagIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline'
+import { FunnelIcon, TagIcon, ArrowsUpDownIcon, TicketIcon } from '@heroicons/react/24/outline'
+import axiosInstance from '../Config/apiconfig'
 
 function Tickets() {
   const [tickets, setTickets] = useState([])
@@ -12,15 +12,19 @@ function Tickets() {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const response = await axios.get('/api/tickets', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-          params: { status: statusFilter, category: categoryFilter, sort: sortBy }
+        const response = await axiosInstance.get('/tickets/tickets', {
+          params: {
+            status: statusFilter,
+            category: categoryFilter,
+            sort: sortBy,
+          },
         })
-        setTickets(response.data.data)
+        setTickets(response.data)
       } catch (error) {
-        console.error(error)
+        console.error('Failed to fetch tickets:', error)
       }
     }
+
     fetchTickets()
   }, [statusFilter, categoryFilter, sortBy])
 
@@ -30,7 +34,10 @@ function Tickets() {
         <TicketIcon className="h-8 w-8 text-blue-600 mr-2" />
         Tickets
       </h1>
+
+      {/* Filter Controls */}
       <div className="flex flex-wrap gap-4 mb-6">
+        {/* Status Filter */}
         <div className="flex items-center">
           <FunnelIcon className="h-5 w-5 text-gray-600 mr-2" />
           <select
@@ -45,6 +52,8 @@ function Tickets() {
             <option value="Closed">Closed</option>
           </select>
         </div>
+
+        {/* Category Filter */}
         <div className="flex items-center">
           <TagIcon className="h-5 w-5 text-gray-600 mr-2" />
           <select
@@ -55,8 +64,11 @@ function Tickets() {
             <option value="">All Categories</option>
             <option value="Technology">Technology</option>
             <option value="Finance">Finance</option>
+            {/* Add more as needed */}
           </select>
         </div>
+
+        {/* Sort Filter */}
         <div className="flex items-center">
           <ArrowsUpDownIcon className="h-5 w-5 text-gray-600 mr-2" />
           <select
@@ -70,16 +82,32 @@ function Tickets() {
           </select>
         </div>
       </div>
+
+      {/* Ticket List */}
       <div className="grid gap-4">
-        {tickets.map(ticket => (
-          <div key={ticket._id} className="bg-gray-50 p-4 rounded-lg shadow hover:shadow-md transition-shadow">
-            <Link to={`/tickets/${ticket._id}`}>
-              <h2 className="text-xl font-semibold text-blue-600 hover:underline">{ticket.subject}</h2>
-            </Link>
-            <p className="text-gray-600">Status: {ticket.status}</p>
-            <p className="text-gray-600">Category: {ticket.category.name}</p>
-          </div>
-        ))}
+        {tickets.length > 0 ? (
+          tickets.map(ticket => (
+            <div
+              key={ticket._id}
+              className="bg-gray-50 p-4 rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <Link to={`/tickets/${ticket._id}`}>
+                <h2 className="text-xl font-semibold text-blue-600 hover:underline">
+                  {ticket.subject}
+                </h2>
+              </Link>
+              <p className="text-gray-600">Status: {ticket.status}</p>
+              <p className="text-gray-600">
+                Category: {ticket.category?.name || 'Uncategorized'}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                Created by: {ticket.createdBy?.name || 'Unknown'}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500">No tickets found for the selected filters.</p>
+        )}
       </div>
     </div>
   )

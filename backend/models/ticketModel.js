@@ -13,7 +13,7 @@ const ticketSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-  attachment: { type: String },
+  // attachment: { type: String },
 }, { timestamps: true });
 
 const Ticket = mongoose.model('Ticket', ticketSchema);

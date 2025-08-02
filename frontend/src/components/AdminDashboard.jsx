@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { TagIcon, UserGroupIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { ShieldCheckIcon } from 'lucide-react'
+import axiosInstance from '../Config/apiconfig'
 
 function AdminDashboard() {
   const [categories, setCategories] = useState([])
@@ -10,7 +12,7 @@ function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const categoryResponse = await axios.get('/api/categories', {
+        const categoryResponse = await axiosInstance.get('/api/categories', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         })
         const roleRequestResponse = await axios.get('/api/users/admin/user/allReq', {
